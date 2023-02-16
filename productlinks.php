@@ -35,40 +35,25 @@ class ProductLinks extends Module {
 
     public function hookDisplayFooterProduct($params){
 
-        $id_lang = $this->context->language->id;
+        include _PS_MODULE_DIR_ .  $this->name . "/ProductHandler.php";
         $category = $params['category'];
+        $product = $params['product'];
 
-        $products1 = Product::getProducts($id_lang, 1, 4, "id_product", "ASC", $category->id, true);
-    
+        $id_product = $product->getId();
 
-        $products = [];
+        $ph = new ProductHandler();
 
-
-        foreach($products1 as $product){
-            $id_image = Product::getCover($product['id_product']);
-            if($id_image){
-                $image = new Image($id_image['id_image']);
-                $image_url = _PS_BASE_URL_._THEME_PROD_DIR_.$image->getExistingImgPath().".jpg";
-                $product['cover_url'] = $image_url;
-                $product['id_product_attribute'] = Product::getDefaultAttribute($product['id_product']);
-                $product['link'] = $this->context->link->getProductLink((int) $product['id_product']);
-                $product['price_wt'] = Product::getPriceStatic($product['id_product']);
-                $product['currency_sign'] = $this->context->currency->sign;
-            }
-            $products[] = $product;
-        }
-
+        $category_products = $ph->getProductsFromCategory($category->id);
+        $products = $ph->getProducts($id_product);
 
 
         $this->context->smarty->assign([
-            'products' => $products
+            'category_products' => $category_products, //$category_products,
+            'buyed_products' => $products,
+            "currency_sign" => $this->context->currency->sign
         ]);
 
         return $this->display(__FILE__, 'links.tpl');
     }
-
-
-   
-
 
 }
